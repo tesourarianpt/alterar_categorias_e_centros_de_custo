@@ -1,0 +1,17 @@
+{
+  "name": "alterar_categorias_e_centros_de_custo",
+  "version": "1.0.0",
+  "description": "altera categorias e centros de custo no Granatum usando uma tabela de de-para",
+  "main": "alterar_categorias_e_centros_de_custo.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.7",
+    "querystring": "^0.2.1",
+    "readline": "^1.3.0"
+
+  }
+}
