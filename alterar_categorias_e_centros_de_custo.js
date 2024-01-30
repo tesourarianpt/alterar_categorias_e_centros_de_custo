@@ -29,7 +29,7 @@ async function main(accessToken) {
       );
       alterar_lancamento(accessToken, lancamento.id, {
         categoria_id: parseInt(nova_categoria),
-        // propagar_alteracao: true,
+        propagar_alteracao: true,
       });
     } else {
       console.log(`A categoria ${categoria_id} não está no de-para`);
