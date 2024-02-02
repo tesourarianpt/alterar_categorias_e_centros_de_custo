@@ -7,44 +7,82 @@
 // verificar se está na list de-para
 // se estiver, alterar e atualizar o lançamento
 // const axios = require('axios');
-const { ler_lancamentos } = require("./ler_lancamentos");
-const { mapear_categoria } = require("./mapear_categoria");
-const { alterar_lancamento } = require("./alterar_lancamento");
+const {
+  ler_lancamentos,
+} = require("./alterar_categorias_e_centros_de_custo/ler_lancamentos");
+const {
+  mapear_categoria,
+} = require("./alterar_categorias_e_centros_de_custo/mapear_categoria");
+const {
+  alterar_lancamento,
+} = require("./alterar_categorias_e_centros_de_custo/alterar_lancamento");
 const readline = require("readline");
+const {
+  agruparPorLancamentoComposto,
+} = require("./agruparPorLancamentoComposto");
+
+function ordenarPorId(lancamentos) {
+  lancamentos.sort((a, b) => a.id - b.id);
+}
 
 async function main(accessToken) {
-  const filtro = {};
-  console.log("lendo lançamentos...");
+  const filtro = {
+    limit: 500,
+    // pessoa_id: 1381570,
+    // lancamento_composto_id: 3342873,
+    data_inicio: "2024-01-01",
+    data_fim: "2024-01-31",
+    tipo: "R|LR",
+    conta_id: 75063,
+  };
+
+  console.log(`Lidos: ${lancamentos.length} lançamentos`);
+
   const lancamentos = await ler_lancamentos(accessToken, filtro);
-  console.log(`${lancamentos.length} lançamentos lidos com sucesso`);
-  console.log(lancamentos);
+  const lancamentosCompostos = agruparPorLancamentoComposto(lancamentos);
 
-  lancamentos.forEach((lancamento) => {
-    const categoria_id = lancamento.categoria_id;
-    // console.log(lancamento);
-    const nova_categoria = mapear_categoria(categoria_id);
-    if (nova_categoria) {
-      console.log(
-        `${lancamento.descricao} - Categoria ${categoria_id} mapeada para ${nova_categoria}`
-      );
-      alterar_lancamento(accessToken, lancamento.id, {
-        categoria_id: parseInt(nova_categoria),
-        propagar_alteracao: true,
-      });
-    } else {
-      console.log(`A categoria ${categoria_id} não está no de-para`);
-    }
+  Object.keys(lancamentosCompostos).forEach((lancamento_composto_id) => {
+    const lancamentos = lancamentosCompostos[lancamento_composto_id];
+    console.log(lancamentos);
+    ordenarPorId(lancamentos);
+    const primeiroLancamento = lancamentos.shift();
+    console.log(
+      `Lançamento Composto ${lancamento_composto_id} \n Primeiro item: ${primeiroLancamento.descricao}`
+    );
 
-    console.log(categoria_id);
+    const dadosAlteracao = {
+      categoria_id: parseInt(mapear_categoria(primeiroLancamento.categoria_id)),
+      propagar_alteracao: true,
+      data_vencimento: primeiroLancamento.data_vencimento,
+      itens_adicionais: lancamentos.map((lancamento) => ({
+        id: lancamento.id,
+        categoria_id: parseInt(mapear_categoria(lancamento.categoria_id)),
+        // descricao: lancamento.descricao,
+        // valor: lancamento.valor,
+      })),
+    };
+    // console.log(dadosAlteracao);
+
+    alterar_lancamento(accessToken, primeiroLancamento.id, dadosAlteracao);
   });
 }
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout,
-});
+async function pegarDadosUsuario() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  const askQuestion = (question) =>
+    new Promise((resolve) => rl.question(question, resolve));
 
-rl.question("Qual o access token?", (accessToken) => {
+  let accessToken;
+  if (process.env.ACCESS_TOKEN) {
+    accessToken = process.env.ACCESS_TOKEN;
+  } else {
+    accessToken = await askQuestion("Qual o access token?");
+  }
   rl.close();
   main(accessToken);
-});
+}
+
+pegarDadosUsuario();

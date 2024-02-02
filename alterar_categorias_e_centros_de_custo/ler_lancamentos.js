@@ -5,12 +5,7 @@ const apiUrl = "https://api.granatum.com.br/v1/lancamentos";
 function ler_lancamentos(accessToken, filtro) {
   const params = {
     access_token: accessToken,
-    limit: 21,
-    data_inicio: "2024-01-01",
-    data_fim: "2024-01-31",
-    //    lancamento_composto_id: 3342580,
-    tipo: "R|LR",
-    conta_id: 75063,
+    ...filtro,
   };
 
   return axios
