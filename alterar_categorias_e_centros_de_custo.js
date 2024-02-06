@@ -15,7 +15,7 @@ const {
 } = require("./alterar_categorias_e_centros_de_custo/mapear_categoria");
 const {
   recupera_id_composto,
-} = require("./alterar_categorias_e_centros_de_custo/baseIdComposto");
+} = require("./alterar_categorias_e_centros_de_custo/baseIdCompostoFev24");
 const {
   alterar_lancamento,
 } = require("./alterar_categorias_e_centros_de_custo/alterar_lancamento");
@@ -29,13 +29,13 @@ function ordenarPorId(lancamentos) {
 }
 
 async function main(accessToken) {
-  for (let chave = 4; chave <= 91; chave++) {
+  for (let chave = 1; chave <= 2; chave++) {
     const filtro = {
       limit: 50,
       // pessoa_id: 1381570,
       lancamento_composto_id: parseInt(recupera_id_composto(chave)), //3342873,
-      data_inicio: "2024-01-01",
-      data_fim: "2024-01-31",
+      data_inicio: "2024-02-01",
+      data_fim: "2024-02-29",
       tipo: "R|LR",
       conta_id: 75063,
     };
@@ -50,12 +50,9 @@ async function main(accessToken) {
 
     Object.keys(lancamentosCompostos).forEach((lancamento_composto_id) => {
       const lancamentos = lancamentosCompostos[lancamento_composto_id];
-      console.log(lancamentos);
       ordenarPorId(lancamentos);
       const primeiroLancamento = lancamentos.shift();
-      console.log(
-        `Lançamento Composto ${lancamento_composto_id} \n Primeiro item: ${primeiroLancamento.descricao}`
-      );
+      console.log(`Lançamento Composto ${lancamento_composto_id} \n Primeiro item: ${primeiroLancamento.descricao}`);
 
       const dadosAlteracao = {
         categoria_id: parseInt(mapear_categoria(primeiroLancamento.categoria_id)),
