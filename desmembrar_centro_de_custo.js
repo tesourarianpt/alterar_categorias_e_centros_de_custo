@@ -18,52 +18,149 @@ const filtro = {
 };
 
 // Fundos
-// Fundos DG e RC: 141875
-// Fundo Regional: 284263
+const ID_FUNDOS_DG = 141875;
+const ID_FUNDO_REGIONAL = 284263;
 
 const ID_NE_GERAL = 141872;
 const ID_NE_LOCAL = 141871;
 
-const filtrarLancamentoPorCentroDeCusto = (id) => (l) =>
-  l.centro_custo_lucro_id == id;
+const ID_MENSALIDADE_EMERGENCIA = 141876;
+const ID_MENSALIDADE_DESPESAS_FIXAS = 141873;
+const ID_MENSALIDADE_ZELADOR = 141874;
+const ID_MENSALIDADE_PRESIDENCIA = 141866;
 
-function desmembrarNovoEncanto(lancamento_composto_id, lancamentos) {
-  const neLocal = lancamentos.filter(
-    filtrarLancamentoPorCentroDeCusto(ID_NE_LOCAL)
-  );
-  const neGeral = lancamentos.filter(
-    filtrarLancamentoPorCentroDeCusto(ID_NE_GERAL)
-  );
+const temCentroDeCusto = (id) => (l) => l.centro_custo_lucro_id == id;
 
+function desmembrarMensalidade(lancamentos) {
+  const emergencia = lancamentos.filter(
+    temCentroDeCusto(ID_MENSALIDADE_EMERGENCIA)
+  );
+  if (emergencia.length > 0) {
+    throw Error(
+      `Já existe o centro de custo emergência nesses lançamentos - ${JSON.stringify(
+        neLocal
+      )}. Eles provavelmente já foram atualizados.`
+    );
+  }
+  const novosLancamentos = [];
+  lancamentos = lancamentos.map((lancamento) => {
+    temCentroDeCustoDespesasFixas = temCentroDeCusto(
+      ID_MENSALIDADE_DESPESAS_FIXAS
+    );
+    const temAPalavraMensalidade = (d) =>
+      d.toLowerCase().includes("mensalidade");
+    if (
+      temCentroDeCustoDespesasFixas(lancamento) &&
+      temAPalavraMensalidade(lancamento.descricao)
+    ) {
+      const descricao = lancamento.descricao;
+      const parts = descricao.split("-");
+      let nomeSocio = parts.length > 1 ? ` -${parts[1]}` : "";
+      lancamento.descricao = "Mensalidade - Despesas Fixas" + nomeSocio;
+      let valorInicial = parseFloat(lancamento.valor);
+      lancamento.valor = (0.43 * valorInicial).toFixed(2).toString();
+      novosLancamentos.push({
+        id: null,
+        descricao: "Mensalidade - Zelador" + nomeSocio,
+        centro_custo_lucro_id: ID_MENSALIDADE_ZELADOR,
+        valor: (0.42 * valorInicial).toFixed(2).toString(),
+      });
+      novosLancamentos.push({
+        id: null,
+        descricao: "Mensalidade - Emergência" + nomeSocio,
+        centro_custo_lucro_id: ID_MENSALIDADE_EMERGENCIA,
+        valor: (0.03 * valorInicial).toFixed(2).toString(),
+      });
+      novosLancamentos.push({
+        id: null,
+        descricao: "Mensalidade - Presidência" + nomeSocio,
+        centro_custo_lucro_id: ID_MENSALIDADE_PRESIDENCIA,
+        valor: (0.12 * valorInicial).toFixed(2).toString(),
+      });
+    }
+    return {
+      id: lancamento.id,
+      descricao: lancamento.descricao,
+      centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
+      valor: lancamento.valor,
+    };
+  });
+  return [...lancamentos, ...novosLancamentos];
+}
+
+function desmembrarFundos(lancamentos) {
+  const fundoRegional = lancamentos.filter(temCentroDeCusto(ID_FUNDO_REGIONAL));
+  if (fundoRegional.length > 0) {
+    throw Error(
+      `Já existe novo fundo regional nestes lançamentos - ${JSON.stringify(
+        neLocal
+      )} Eles provavelmente já foram atualizados.`
+    );
+  }
+  lancamentos = lancamentos.map((lancamento) => {
+    const temCentroDeCustoDG = temCentroDeCusto(ID_FUNDOS_DG);
+    const temAPalavraRegional = (d) => d.toLowerCase().includes("regional");
+    if (
+      temCentroDeCustoDG(lancamento) &&
+      temAPalavraRegional(lancamento.descricao)
+    ) {
+      lancamento.centro_custo_lucro_id = 284263;
+    }
+    return lancamento;
+  });
+  return lancamentos;
+}
+
+function desmembrarNovoEncanto(lancamentos) {
+  const neLocal = lancamentos.filter(temCentroDeCusto(ID_NE_LOCAL));
   if (neLocal.length > 0) {
     throw Error(
-      `O lançamento ${lancamento_composto_id} já possui novo encanto Local - ${JSON.stringify(
+      `Já existe novo encanto local nestes lançamentos - ${JSON.stringify(
         neLocal
-      )}`
+      )} Eles provavelmente já foram atualizados.`
     );
   }
 
-  neGeral.forEach((lancamento) => {});
+  const novosLancamentos = [];
+  lancamentos = lancamentos.map((lancamento) => {
+    if (temCentroDeCusto(ID_NE_GERAL)(lancamento)) {
+      const descricao = lancamento.descricao;
+      const parts = descricao.split("-");
+      let nomeSocio = parts.length > 1 ? ` -${parts[1]}` : "";
+      lancamento.descricao = "Novo Encanto Geral" + nomeSocio;
+      let valorInicial = parseFloat(lancamento.valor);
+      lancamento.valor = (0.6 * valorInicial).toFixed(2).toString();
+      novosLancamentos.push({
+        id: null,
+        descricao: "Novo Encanto Local" + nomeSocio,
+        centro_custo_lucro_id: ID_NE_LOCAL,
+        valor: (0.6 * valorInicial).toFixed(2).toString(),
+      });
+    }
+    return {
+      id: lancamento.id,
+      descricao: lancamento.descricao,
+      centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
+      valor: lancamento.valor,
+    };
+  });
+  return [...lancamentos, ...novosLancamentos];
 }
 
 async function main(accessToken) {
   const lancamentos = await ler_lancamentos(accessToken, filtro);
-  console.log(`Lidos: ${lancamentos.length} lançamentos`);
+  // console.log(`Lidos: ${lancamentos.length} lançamentos`);
 
   const lancamentosCompostos = agruparPorLancamentoComposto(lancamentos);
-  console.log(lancamentosCompostos);
 
   Object.keys(lancamentosCompostos).forEach((lancamento_composto_id) => {
     // const itensAdicionais()
-
-    const lancamentos = lancamentosCompostos[lancamento_composto_id];
-    const itensAdicionais = desmembrarNovoEncanto(
-      lancamento_composto_id,
-      lancamentos
-    );
+    let lancamentos = lancamentosCompostos[lancamento_composto_id];
+    lancamentos = desmembrarNovoEncanto(lancamentos);
+    lancamentos = desmembrarFundos(lancamentos);
+    lancamentos = desmembrarMensalidade(lancamentos);
+    console.log(lancamentos);
   });
-
-  //   console.log(lancamentos);
 }
 
 pedirAccessTokenSeNaoDefinido(main);
