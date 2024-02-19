@@ -7,6 +7,9 @@ const {
 const {
   pedirAccessTokenSeNaoDefinido,
 } = require("./pedirAccessTokenSeNaoDefinido");
+const {
+  alterar_lancamento,
+} = require("./alterar_categorias_e_centros_de_custo/alterar_lancamento");
 
 const filtro = {
   limit: 50,
@@ -63,18 +66,21 @@ function desmembrarMensalidade(lancamentos) {
         id: null,
         descricao: "Mensalidade - Zelador" + nomeSocio,
         centro_custo_lucro_id: ID_MENSALIDADE_ZELADOR,
+        categoria_id: lancamento.categoria_id,
         valor: (0.42 * valorInicial).toFixed(2).toString(),
       });
       novosLancamentos.push({
         id: null,
         descricao: "Mensalidade - Emergência" + nomeSocio,
         centro_custo_lucro_id: ID_MENSALIDADE_EMERGENCIA,
+        categoria_id: lancamento.categoria_id,
         valor: (0.03 * valorInicial).toFixed(2).toString(),
       });
       novosLancamentos.push({
         id: null,
         descricao: "Mensalidade - Presidência" + nomeSocio,
         centro_custo_lucro_id: ID_MENSALIDADE_PRESIDENCIA,
+        categoria_id: lancamento.categoria_id,
         valor: (0.12 * valorInicial).toFixed(2).toString(),
       });
     }
@@ -83,6 +89,7 @@ function desmembrarMensalidade(lancamentos) {
       descricao: lancamento.descricao,
       centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
       valor: lancamento.valor,
+      categoria_id: lancamento.categoria_id,
     };
   });
   return [...lancamentos, ...novosLancamentos];
@@ -130,17 +137,20 @@ function desmembrarNovoEncanto(lancamentos) {
       lancamento.descricao = "Novo Encanto Geral" + nomeSocio;
       let valorInicial = parseFloat(lancamento.valor);
       lancamento.valor = (0.6 * valorInicial).toFixed(2).toString();
-      novosLancamentos.push({
+      const novoLancamento = {
         id: null,
         descricao: "Novo Encanto Local" + nomeSocio,
+        categoria_id: lancamento.categoria_id,
         centro_custo_lucro_id: ID_NE_LOCAL,
         valor: (0.6 * valorInicial).toFixed(2).toString(),
-      });
+      };
+      novosLancamentos.push(novoLancamento);
     }
     return {
       id: lancamento.id,
       descricao: lancamento.descricao,
       centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
+      categoria_id: lancamento.categoria_id,
       valor: lancamento.valor,
     };
   });
@@ -155,11 +165,51 @@ async function main(accessToken) {
 
   Object.keys(lancamentosCompostos).forEach((lancamento_composto_id) => {
     // const itensAdicionais()
+
     let lancamentos = lancamentosCompostos[lancamento_composto_id];
+    const dataVencimento = lancamentos[0].data_vencimento;
     lancamentos = desmembrarNovoEncanto(lancamentos);
     lancamentos = desmembrarFundos(lancamentos);
     lancamentos = desmembrarMensalidade(lancamentos);
-    console.log(lancamentos);
+
+    const primeiroLancamentoDeDespesasFixas = lancamentos.find(
+      (l) => l.centro_custo_lucro_id === ID_MENSALIDADE_DESPESAS_FIXAS
+    );
+    if (!primeiroLancamentoDeDespesasFixas) {
+      throw "Não encontrei um lançamento de despesas fixas.";
+    }
+    const primeiroLancamentoDeDespesasFixasId =
+      primeiroLancamentoDeDespesasFixas.id;
+    const naoEOPrimeiro = (l) => l.id !== primeiroLancamentoDeDespesasFixasId;
+    const dadosAlteracao = {
+      centro_custo_lucro_id:
+        primeiroLancamentoDeDespesasFixas.centro_custo_lucro_id,
+      valor: primeiroLancamentoDeDespesasFixas.valor,
+      descricao: primeiroLancamentoDeDespesasFixas.descricao,
+      categoria_id: primeiroLancamentoDeDespesasFixas.categoria_id,
+      itens_adicionais: lancamentos.filter(naoEOPrimeiro).map((l) => {
+        const payload = {
+          centro_custo_lucro_id: l.centro_custo_lucro_id,
+          valor: l.valor,
+          descricao: l.descricao,
+          categoria_id: l.categoria_id,
+        };
+        if (l.id) {
+          payload.id = l.id;
+        }
+        return payload;
+      }),
+    };
+    dadosAlteracao.data_vencimento = dataVencimento;
+
+    console.log(dadosAlteracao);
+    // console.log(dadosAlteracao);
+
+    alterar_lancamento(
+      accessToken,
+      primeiroLancamentoDeDespesasFixasId,
+      dadosAlteracao
+    );
   });
 }
 

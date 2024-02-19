@@ -45,8 +45,8 @@ function alterar_lancamento(accessToken, id, params) {
       return response.data;
     })
     .catch((error) => {
-      console.error("ERRO", error);
-      console.error("ERRO", error.response.data);
+      console.error("ERRO", JSON.stringify(error));
+      console.error("ERRO", JSON.stringify(error.response.data));
     });
 }
 exports.alterar_lancamento = alterar_lancamento;

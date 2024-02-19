@@ -33,18 +33,19 @@ function ordenarPorId(lancamentos) {
 async function main(accessToken) {
   for (let chave = 1; chave <= 2; chave++) {
     const filtro = {
-      limit: 2,
+      limit: 20,
       // pessoa_id: 1381570,
-      lancamento_composto_id: parseInt(recupera_id_composto(chave)), //3342873,
-      data_inicio: "2024-02-01",
-      data_fim: "2024-02-29",
-      tipo: "R|LR",
+      // lancamento_composto_id: parseInt(recupera_id_composto(chave)), //3342873,
+      data_inicio: "2024-02-10",
+      data_fim: "2024-02-10",
+      tipo: "R|LR|RA",
       conta_id: 75063,
     };
     //console.log(i);
 
     const lancamentos = await ler_lancamentos(accessToken, filtro);
     console.log(`Lidos: ${lancamentos.length} lançamentos`);
+
     const lancamentosCompostos = agruparPorLancamentoComposto(lancamentos);
     console.log(lancamentosCompostos);
 
