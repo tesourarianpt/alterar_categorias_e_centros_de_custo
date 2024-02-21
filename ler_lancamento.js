@@ -1,27 +1,5 @@
-const axios = require("axios");
 const readline = require("readline");
-
-const apiUrl = "https://api.granatum.com.br/v1/lancamentos";
-
-function lerLancamento(accessToken, lancamentoId) {
-  const params = {
-    access_token: accessToken,
-  };
-
-  return axios
-    .get(`${apiUrl}/${lancamentoId}`, {
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      params,
-    })
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("Error:", error.message);
-    });
-}
+const { lerLancamento } = require("./lib/lerLancamento");
 
 async function main(accessToken, lancamentoId) {
   const lancamento = await lerLancamento(accessToken, lancamentoId);
