@@ -37,13 +37,46 @@ const filtro = {
   tipo: "R|LR|RA",
 };
 
-function mostrarLancamentos(lancamentos) {
-  console.log("\n--------------------------------------- ");
-  lancamentos.forEach((i) => {
+function padString(str, width) {
+  if (!str) {
+    return " ".repeat(width);
+  }
+  const padding = " ".repeat(width - str.toString().length);
+  return str + padding;
+}
+
+function mostrarLancamentos(lancamentos, title) {
+  // mostrar em tabela
+  // ordenar pelo nome
+  // mostrar total ou totais
+  // mostrar o nome do centro de custo
+  console.log(`\n-------------------${title}-------------------- `);
+  lancamentos.sort((a, b) => a.descricao.localeCompare(b.descricao));
+  lancamentos.forEach((lancamento, index) => {
     console.log(
-      `${i.id} - ${i.descricao} - ${i.centro_custo_lucro_id} - ${i.valor}`
+      `${padString(index, 2)} - ${padString(
+        lancamento.id ? lancamento.id : "- NOVO -",
+        9
+      )} - ${padString(lancamento.descricao, 50)} - ${padString(
+        lancamento.centro_custo_lucro_id,
+        10
+      )} - ${padString(lancamento.valor, 8)}`
     );
   });
+  console.log("--------------------------------------- \n");
+  const total = lancamentos
+    .reduce((sum, l) => sum + parseFloat(l.valor), 0)
+    .toFixed(2);
+  console.log(`total ${total} \n`);
+  const isMensalidade = (l) =>
+    l.descricao.toLowerCase().includes("mensalidade");
+
+  const totalMensalidade = lancamentos
+    .reduce((sum, l) => {
+      return sum + (isMensalidade(l) ? parseFloat(l.valor) : 0);
+    }, 0)
+    .toFixed(2);
+  console.log(`total mensalidade ${totalMensalidade} \n`);
   console.log("--------------------------------------- \n");
 }
 
@@ -79,53 +112,31 @@ async function main(accessToken) {
       console.log(
         `${socioaELancamentoComposto.nome} - Lançamento Composto: ${socioaELancamentoComposto.lancamento_composto_id} - Lançamento: ${lancamentoId}`
       );
+
       await askQuestion("[ver lançamento...]");
       const lancamento = await lerLancamento(accessToken, lancamentoId);
       const lancamentosNaoAninhados = [
         lancamento,
         ...lancamento.itens_adicionais,
       ];
-      mostrarLancamentos(lancamentosNaoAninhados);
+      mostrarLancamentos(lancamentosNaoAninhados, "atual");
+      // verificar se já não está desmembrado. Se estiver, pula para o próximo.
       await askQuestion("[ver novo lançamento...]");
-
       let lancamentosDesmembrados = desmembrarNovoEncanto(
         lancamentosNaoAninhados
       );
       lancamentosDesmembrados = desmembrarFundos(lancamentosDesmembrados);
       lancamentosDesmembrados = desmembrarMensalidade(lancamentosDesmembrados);
-
-      mostrarLancamentos(lancamentosDesmembrados);
-
+      mostrarLancamentos(lancamentosDesmembrados, "desmembrados");
+      await askQuestion("[desmembrar...]");
+      //   const { id, dados } = comporDadosAlteracao(lancamentos, dataVencimento);
+      //   alterar_lancamento(accessToken, id, dados);
       await askQuestion("[próximo sócio...]");
     } else {
       console.log(`${socioaELancamentoComposto.nome} - NÃO TEM MENSALIDADE`);
       await askQuestion("[próximo sócio...]");
     }
   }
-  // console.log({ lancamentoCompostoPorSocioCount });
-  // console.log(sociosELancamentosCompostos);
-
-  // lancamentos.forEach((l) => {
-  //   console.log({
-  //     i: i++,
-  //     id: l.id,
-  //     descricao: l.descricao,
-  //     lancamento_composto_id: l.lancamento_composto_id,
-  //     centro_custo_lucro_id: l.centro_custo_lucro_id,
-  //   });
-  // });
-  // // console.log(`Lidos: ${lancamentos.length} lançamentos`);
-  // const lancamentosCompostos = agruparPorLancamentoComposto(lancamentos);
-
-  // Object.keys(lancamentosCompostos).forEach((lancamento_composto_id) => {
-  //   let lancamentos = lancamentosCompostos[lancamento_composto_id];
-  //   const dataVencimento = lancamentos[0].data_vencimento;
-  //   lancamentos = desmembrarNovoEncanto(lancamentos);
-  //   lancamentos = desmembrarFundos(lancamentos);
-  //   lancamentos = desmembrarMensalidade(lancamentos);
-  //   const { id, dados } = comporDadosAlteracao(lancamentos, dataVencimento);
-  //   alterar_lancamento(accessToken, id, dados);
-  // });
 }
 
 pedirAccessTokenSeNaoDefinido(main);
