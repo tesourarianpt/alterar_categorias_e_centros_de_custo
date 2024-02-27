@@ -28,6 +28,7 @@ const {
 } = require("./desmembrar_centro_de_custo/lerTodosLancamentos");
 const readline = require("readline");
 const { lerLancamento } = require("./lib/lerLancamento");
+const { ler_centros_de_custo } = require("./lib/ler_centros_de_custo");
 
 const filtro = {
   conta_id: 75063,
@@ -45,23 +46,22 @@ function padString(str, width) {
   return str + padding;
 }
 
-function mostrarLancamentos(lancamentos, title) {
-  // mostrar em tabela
-  // ordenar pelo nome
-  // mostrar total ou totais
+const CATEGORIA_ID_FUNDO_PARTICIPACAO = 1018689;
+
+function mostrarLancamentos(centrosDeCusto, lancamentos, title) {
   // mostrar o nome do centro de custo
   console.log(`\n-------------------${title}-------------------- `);
   lancamentos.sort((a, b) => a.descricao.localeCompare(b.descricao));
   lancamentos.forEach((lancamento, index) => {
-    console.log(
-      `${padString(index, 2)} - ${padString(
-        lancamento.id ? lancamento.id : "- NOVO -",
-        9
-      )} - ${padString(lancamento.descricao, 50)} - ${padString(
-        lancamento.centro_custo_lucro_id,
-        10
-      )} - ${padString(lancamento.valor, 8)}`
+    const i = padString(index, 2);
+    const id = padString(lancamento.id ? lancamento.id : "- NOVO -", 9);
+    const descricao = padString(lancamento.descricao, 50);
+    const valor = padString(lancamento.valor, 8);
+    const centroDeCusto = padString(
+      centrosDeCusto[lancamento.centro_custo_lucro_id],
+      50
     );
+    console.log(`${i} - ${id} - ${descricao} - ${valor} - ${centroDeCusto}`);
   });
   console.log("--------------------------------------- \n");
   const total = lancamentos
@@ -70,7 +70,6 @@ function mostrarLancamentos(lancamentos, title) {
   console.log(`total ${total} \n`);
   const isMensalidade = (l) =>
     l.descricao.toLowerCase().includes("mensalidade");
-
   const totalMensalidade = lancamentos
     .reduce((sum, l) => {
       return sum + (isMensalidade(l) ? parseFloat(l.valor) : 0);
@@ -80,11 +79,46 @@ function mostrarLancamentos(lancamentos, title) {
   console.log("--------------------------------------- \n");
 }
 
+const countNumFundosParticipacao = (ls) => {
+  const numFundosDeParticipacao = ls.filter(
+    (l) => l.categoria_id === CATEGORIA_ID_FUNDO_PARTICIPACAO
+  ).length;
+  if (numFundosDeParticipacao === 0) {
+    console.log("NÃO TEM FUNDO DE PARTICIPAÇÃO");
+  }
+  return numFundosDeParticipacao;
+};
+
+function ajustarNomesDasRubricas(lancamentos, nome) {
+  const numSocios = countNumFundosParticipacao(lancamentos);
+  console.log({ numFundosParticipacao });
+  if (numSocios > 1) {
+    // mudar nomes para primeira minúscula
+    return lancamentos;
+  } else {
+    const primeiraMaiuscula = (s) =>
+      s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    const primeiroNome = primeiraMaiuscula(nome.trim().split(" ")[0]);
+    const removerDepoisHifen = (d) =>
+      d.includes("Granatum") ? d : d.split("-")[0].trim();
+    return lancamentos.map((l) => ({
+      ...l,
+      descricao: `${removerDepoisHifen(l.descricao)} - ${primeiroNome}`,
+    }));
+  }
+}
+
 async function main(accessToken) {
+  const centrosDeCusto = (await ler_centros_de_custo(accessToken)).reduce(
+    (centros, centro) => ({ ...centros, [centro.id]: centro.descricao }),
+    {}
+  );
+
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
   });
+
   const askQuestion = (question) =>
     new Promise((resolve) => rl.question(question, resolve));
 
@@ -100,7 +134,6 @@ async function main(accessToken) {
 
   let i = 0;
 
-  let lancamentoCompostoPorSocioCount = 0;
   await askQuestion("prosseguir....");
   for (const sl of Object.keys(sociosELancamentosCompostos)) {
     const socioaELancamentoComposto = sociosELancamentosCompostos[sl];
@@ -119,15 +152,21 @@ async function main(accessToken) {
         lancamento,
         ...lancamento.itens_adicionais,
       ];
-      mostrarLancamentos(lancamentosNaoAninhados, "atual");
+      mostrarLancamentos(centrosDeCusto, lancamentosNaoAninhados, "atual");
       // verificar se já não está desmembrado. Se estiver, pula para o próximo.
       await askQuestion("[ver novo lançamento...]");
-      let lancamentosDesmembrados = desmembrarNovoEncanto(
-        lancamentosNaoAninhados
+      let lancamentosDesmembrados = ajustarNomesDasRubricas(
+        lancamentosNaoAninhados,
+        socioaELancamentoComposto.nome
       );
+      lancamentosDesmembrados = desmembrarNovoEncanto(lancamentosDesmembrados);
       lancamentosDesmembrados = desmembrarFundos(lancamentosDesmembrados);
       lancamentosDesmembrados = desmembrarMensalidade(lancamentosDesmembrados);
-      mostrarLancamentos(lancamentosDesmembrados, "desmembrados");
+      mostrarLancamentos(
+        centrosDeCusto,
+        lancamentosDesmembrados,
+        "desmembrados"
+      );
       await askQuestion("[desmembrar...]");
       //   const { id, dados } = comporDadosAlteracao(lancamentos, dataVencimento);
       //   alterar_lancamento(accessToken, id, dados);
@@ -138,10 +177,11 @@ async function main(accessToken) {
     }
   }
 }
-
 pedirAccessTokenSeNaoDefinido(main);
 
 // todo:
 /*
- - adicionar nome da pessoa em cada rubrica
+ - colocar primeira maiúscula nos nomes das rubricas para lancamentos de mais de um sócio. 
+ - verificar mensalidade do P. Ferrão. A está errada
+
 */

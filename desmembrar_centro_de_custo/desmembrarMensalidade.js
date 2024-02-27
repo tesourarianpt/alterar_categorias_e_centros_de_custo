@@ -27,26 +27,26 @@ function desmembrarMensalidade(lancamentos) {
       const descricao = lancamento.descricao;
       const parts = descricao.split("-");
       let nomeSocio = parts.length > 1 ? ` -${parts[1]}` : "";
-      lancamento.descricao = "Mensalidade - Despesas Fixas" + nomeSocio;
+      lancamento.descricao = "Mensalidade:Despesas Fixas" + nomeSocio;
       let valorInicial = parseFloat(lancamento.valor);
       lancamento.valor = (0.43 * valorInicial).toFixed(2).toString();
       novosLancamentos.push({
         id: null,
-        descricao: "Mensalidade - Zelador" + nomeSocio,
+        descricao: "Mensalidade:Zelador" + nomeSocio,
         centro_custo_lucro_id: centros_de_custo.ID_MENSALIDADE_ZELADOR,
         categoria_id: lancamento.categoria_id,
         valor: (0.42 * valorInicial).toFixed(2).toString(),
       });
       novosLancamentos.push({
         id: null,
-        descricao: "Mensalidade - Emergência" + nomeSocio,
+        descricao: "Mensalidade:Emergência" + nomeSocio,
         centro_custo_lucro_id: centros_de_custo.ID_MENSALIDADE_EMERGENCIA,
         categoria_id: lancamento.categoria_id,
         valor: (0.03 * valorInicial).toFixed(2).toString(),
       });
       novosLancamentos.push({
         id: null,
-        descricao: "Mensalidade - Presidência" + nomeSocio,
+        descricao: "Mensalidade:Presidência" + nomeSocio,
         centro_custo_lucro_id: centros_de_custo.ID_MENSALIDADE_PRESIDENCIA,
         categoria_id: lancamento.categoria_id,
         valor: (0.12 * valorInicial).toFixed(2).toString(),
