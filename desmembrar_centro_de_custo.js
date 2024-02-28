@@ -11,8 +11,8 @@ const {
   desmembrarMensalidade,
 } = require("./desmembrar_centro_de_custo/desmembrarMensalidade");
 const {
-  desmembrarFundos,
-} = require("./desmembrar_centro_de_custo/desmembrarFundos");
+  mudarCentroDeCustoDoFundoRegional,
+} = require("./desmembrar_centro_de_custo/mudarCentroDeCustoDoFundoRegional");
 const {
   desmembrarNovoEncanto,
 } = require("./desmembrar_centro_de_custo/desmembrarNovoEncanto");
@@ -95,7 +95,9 @@ async function main(accessToken) {
         socioaELancamentoComposto.nome
       );
       lancamentosDesmembrados = desmembrarNovoEncanto(lancamentosDesmembrados);
-      lancamentosDesmembrados = desmembrarFundos(lancamentosDesmembrados);
+      lancamentosDesmembrados = mudarCentroDeCustoDoFundoRegional(
+        lancamentosDesmembrados
+      );
       lancamentosDesmembrados = desmembrarMensalidade(lancamentosDesmembrados);
       mostrarLancamentos(
         centrosDeCusto,

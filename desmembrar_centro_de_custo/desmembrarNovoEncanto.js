@@ -22,13 +22,15 @@ function desmembrarNovoEncanto(lancamentos) {
       let nomeSocio = parts.length > 1 ? ` -${parts[1]}` : "";
       lancamento.descricao = "Novo Encanto Geral" + nomeSocio;
       let valorInicial = parseFloat(lancamento.valor);
-      lancamento.valor = (0.4 * valorInicial).toFixed(2).toString();
+      let valorNEGeral = (0.4 * valorInicial).toFixed(2);
+      let valorNELocal = (valorInicial - valorNEGeral).toFixed(2);
+      lancamento.valor = valorNEGeral.toString();
       const novoLancamento = {
         id: null,
         descricao: "Novo Encanto Local" + nomeSocio,
         categoria_id: lancamento.categoria_id,
         centro_custo_lucro_id: centros_de_custo.ID_NE_LOCAL,
-        valor: (0.6 * valorInicial).toFixed(2).toString(),
+        valor: valorNELocal.toString(),
       };
       novosLancamentos.push(novoLancamento);
     }

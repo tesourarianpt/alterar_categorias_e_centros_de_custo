@@ -1,8 +1,9 @@
 const { centros_de_custo } = require("./centros_de_custo");
 
 const temCentroDeCusto = (id) => (l) => l.centro_custo_lucro_id == id;
-
-function desmembrarFundos(lancamentos) {
+const temCentroDeCustoDG = temCentroDeCusto(centros_de_custo.ID_FUNDOS_DG);
+const temAPalavraRegional = (d) => d.toLowerCase().includes("regional");
+const garanteQueAindaNaoTemFundoRegional = (lancamentos) => {
   const fundoRegional = lancamentos.filter(
     temCentroDeCusto(centros_de_custo.ID_FUNDO_REGIONAL)
   );
@@ -13,9 +14,11 @@ function desmembrarFundos(lancamentos) {
       )} Eles provavelmente já foram atualizados.`
     );
   }
+};
+
+function mudarCentroDeCustoDoFundoRegional(lancamentos) {
+  garanteQueAindaNaoTemFundoRegional(lancamentos);
   lancamentos = lancamentos.map((lancamento) => {
-    const temCentroDeCustoDG = temCentroDeCusto(centros_de_custo.ID_FUNDOS_DG);
-    const temAPalavraRegional = (d) => d.toLowerCase().includes("regional");
     if (
       temCentroDeCustoDG(lancamento) &&
       temAPalavraRegional(lancamento.descricao)
@@ -26,4 +29,4 @@ function desmembrarFundos(lancamentos) {
   });
   return lancamentos;
 }
-exports.desmembrarFundos = desmembrarFundos;
+exports.mudarCentroDeCustoDoFundoRegional = mudarCentroDeCustoDoFundoRegional;
