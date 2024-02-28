@@ -22,7 +22,7 @@ function desmembrarNovoEncanto(lancamentos) {
       let nomeSocio = parts.length > 1 ? ` -${parts[1]}` : "";
       lancamento.descricao = "Novo Encanto Geral" + nomeSocio;
       let valorInicial = parseFloat(lancamento.valor);
-      lancamento.valor = (0.6 * valorInicial).toFixed(2).toString();
+      lancamento.valor = (0.4 * valorInicial).toFixed(2).toString();
       const novoLancamento = {
         id: null,
         descricao: "Novo Encanto Local" + nomeSocio,

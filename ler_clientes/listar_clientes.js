@@ -5,9 +5,10 @@ const apiUrl = "https://api.granatum.com.br/v1/clientes";
 
 const ID_CLASSIFICACAO_SOCIO_NPTC = 229;
 
-function listar_clientes(accessToken, soSocios) {
+function listar_clientes(accessToken, soSocios, filtros = {}) {
   const params = {
     access_token: accessToken,
+    ...filtros,
   };
 
   return axios
