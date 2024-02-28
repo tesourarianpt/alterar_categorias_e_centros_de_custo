@@ -29,23 +29,26 @@ const {
 const readline = require("readline");
 const { lerLancamento } = require("./lib/lerLancamento");
 const { ler_centros_de_custo } = require("./lib/ler_centros_de_custo");
+const { ler_categorias } = require("./lib/ler_categorias");
 const { mostrarLancamentos } = require("./lib/mostrarLancamentos");
 const {
   ajustarNomesDasRubricas,
 } = require("./desmembrar_centro_de_custo/ajustarNomesDasRubricas");
 
-const filtro = {
-  conta_id: 75063,
-  centro_custo_lucro_id: 141875,
-  data_inicio: "2024-05-01",
-  data_fim: "2024-05-31",
-  tipo: "R|LR|RA",
-};
-
 const ler_centros_de_custos_agrupados = async (accessToken) => {
   const centros_de_custo = await ler_centros_de_custo(accessToken);
   return centros_de_custo.reduce(
     (centros, centro) => ({ ...centros, [centro.id]: centro.descricao }),
+    {}
+  );
+};
+const ler_categorias_agrupadas = async (accessToken) => {
+  const categorias = await ler_categorias(accessToken);
+  return categorias.reduce(
+    (categorias, categoria) => ({
+      ...categorias,
+      [categoria.id]: categoria.descricao,
+    }),
     {}
   );
 };
@@ -60,11 +63,18 @@ const createAskQuestion = () => {
 
 async function main(accessToken) {
   const centrosDeCusto = await ler_centros_de_custos_agrupados(accessToken);
+  const categorias = await ler_categorias_agrupadas(accessToken);
   const askQuestion = createAskQuestion();
 
   const socios = await listar_clientes(accessToken, true, { term: "Bruno" });
   console.log(`Lidos: ${socios.length} socios`);
-  const lancamentos = await lerTodosLancamentos(accessToken, filtro);
+  const lancamentos = await lerTodosLancamentos(accessToken, {
+    conta_id: 75063,
+    centro_custo_lucro_id: 141875,
+    data_inicio: "2024-03-01",
+    data_fim: "2024-03-31",
+    tipo: "R|LR|RA",
+  });
   console.log(`Lidos: ${lancamentos.length} lancamentos`);
   const sociosELancamentosCompostos = unirSociosELancamentosCompostos(
     socios,
@@ -88,7 +98,12 @@ async function main(accessToken) {
         lancamento,
         ...lancamento.itens_adicionais,
       ];
-      mostrarLancamentos(centrosDeCusto, lancamentosNaoAninhados, "atual");
+      mostrarLancamentos(
+        centrosDeCusto,
+        categorias,
+        lancamentosNaoAninhados,
+        "atual"
+      );
       // verificar se já não está desmembrado. Se estiver, pula para o próximo.
       let lancamentosDesmembrados = ajustarNomesDasRubricas(
         lancamentosNaoAninhados,
@@ -101,6 +116,7 @@ async function main(accessToken) {
       lancamentosDesmembrados = desmembrarMensalidade(lancamentosDesmembrados);
       mostrarLancamentos(
         centrosDeCusto,
+        categorias,
         lancamentosDesmembrados,
         "desmembrados"
       );

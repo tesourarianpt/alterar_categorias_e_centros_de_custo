@@ -1,4 +1,4 @@
-const CATEGORIA_ID_FUNDO_PARTICIPACAO = 1018689;
+const CATEGORIA_ID_FUNDO_PARTICIPACAO = 1998859;
 
 const countNumFundosParticipacao = (ls) => {
   const numFundosDeParticipacao = ls.filter(
