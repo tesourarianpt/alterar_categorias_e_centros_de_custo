@@ -131,7 +131,3 @@ async function main(accessToken) {
   }
 }
 pedirAccessTokenSeNaoDefinido(main);
-
-// Entender porque B Wider está mostrando que não tem fundo de participação.
-// Também: Diogo e Nathália, Gilson e Fernanda,
-// Verificar a sma final de valores do Bruno Emanuel
