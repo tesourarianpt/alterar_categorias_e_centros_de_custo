@@ -120,9 +120,9 @@ async function main(accessToken) {
         lancamentosDesmembrados,
         "desmembrados"
       );
-      // await askQuestion("[desmembrar...]");
-      //   const { id, dados } = comporDadosAlteracao(lancamentos, dataVencimento);
-      //   alterar_lancamento(accessToken, id, dados);
+       await askQuestion("[desmembrar...]");
+         const { id, dados } = comporDadosAlteracao(lancamentos, dataVencimento);
+         alterar_lancamento(accessToken, id, dados);
       await askQuestion("[próximo sócio...]");
     } else {
       console.log(`${socioaELancamentoComposto.nome} - NÃO TEM MENSALIDADE`);
