@@ -34,6 +34,9 @@ const { mostrarLancamentos } = require("./lib/mostrarLancamentos");
 const {
   ajustarNomesDasRubricas,
 } = require("./desmembrar_centro_de_custo/ajustarNomesDasRubricas");
+const {
+  centros_de_custo: centro_de_custo_ids,
+} = require("./desmembrar_centro_de_custo/centros_de_custo");
 
 const ler_centros_de_custos_agrupados = async (accessToken) => {
   const centros_de_custo = await ler_centros_de_custo(accessToken);
@@ -70,12 +73,13 @@ async function main(accessToken) {
   console.log(`Lidos: ${socios.length} socios`);
   const lancamentos = await lerTodosLancamentos(accessToken, {
     conta_id: 75063,
-    centro_custo_lucro_id: 141875,
+    centro_custo_lucro_id: centro_de_custo_ids.ID_FUNDOS_DG,
     data_inicio: "2024-03-01",
     data_fim: "2024-03-31",
     tipo: "R|LR|RA",
   });
   console.log(`Lidos: ${lancamentos.length} lancamentos`);
+
   const sociosELancamentosCompostos = unirSociosELancamentosCompostos(
     socios,
     lancamentos
@@ -104,6 +108,7 @@ async function main(accessToken) {
         lancamentosNaoAninhados,
         "atual"
       );
+
       // verificar se já não está desmembrado. Se estiver, pula para o próximo.
       let lancamentosDesmembrados = ajustarNomesDasRubricas(
         lancamentosNaoAninhados,
@@ -120,9 +125,12 @@ async function main(accessToken) {
         lancamentosDesmembrados,
         "desmembrados"
       );
-      // await askQuestion("[desmembrar...]");
-      //   const { id, dados } = comporDadosAlteracao(lancamentos, dataVencimento);
-      //   alterar_lancamento(accessToken, id, dados);
+      await askQuestion("[desmembrar...]");
+      const { id, dados } = comporDadosAlteracao(
+        lancamentosDesmembrados,
+        lancamento.data_vencimento
+      );
+      alterar_lancamento(accessToken, id, dados);
       await askQuestion("[próximo sócio...]");
     } else {
       console.log(`${socioaELancamentoComposto.nome} - NÃO TEM MENSALIDADE`);
