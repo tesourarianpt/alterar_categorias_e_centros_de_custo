@@ -3,6 +3,7 @@ const { centros_de_custo } = require("./centros_de_custo");
 function formatarDadosAlteracao(lancamento) {
   return lancamento.id
     ? {
+        id: lancamento.id,
         centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
         valor: lancamento.valor,
         descricao: lancamento.descricao,
