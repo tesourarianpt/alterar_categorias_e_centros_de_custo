@@ -26,6 +26,7 @@ function desmembrarNovoEncanto(lancamentos) {
       let valorNELocal = (valorInicial - valorNEGeral).toFixed(2);
       lancamento.valor = valorNEGeral.toString();
       const novoLancamento = {
+        ...lancamento,
         id: null,
         descricao: "Novo Encanto Local" + nomeSocio,
         categoria_id: lancamento.categoria_id,
@@ -35,11 +36,7 @@ function desmembrarNovoEncanto(lancamentos) {
       novosLancamentos.push(novoLancamento);
     }
     return {
-      id: lancamento.id,
-      descricao: lancamento.descricao,
-      centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
-      categoria_id: lancamento.categoria_id,
-      valor: lancamento.valor,
+      ...lancamento,
     };
   });
   return [...lancamentos, ...novosLancamentos];

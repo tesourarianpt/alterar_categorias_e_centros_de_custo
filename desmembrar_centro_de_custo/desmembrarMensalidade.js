@@ -57,34 +57,28 @@ function desmembrarMensalidade(lancamentos) {
 
       lancamento.valor = valorDespesasFixas.toString();
       novosLancamentos.push({
+        ...lancamento,
         id: null,
         descricao: "Mensalidade : Zelador" + nomeSocio,
         centro_custo_lucro_id: centros_de_custo.ID_MENSALIDADE_ZELADOR,
-        categoria_id: lancamento.categoria_id,
         valor: valorZelador.toString(),
       });
       novosLancamentos.push({
+        ...lancamento,
         id: null,
         descricao: "Mensalidade : Emergência" + nomeSocio,
         centro_custo_lucro_id: centros_de_custo.ID_MENSALIDADE_EMERGENCIA,
-        categoria_id: lancamento.categoria_id,
         valor: valorEmergencia.toString(),
       });
       novosLancamentos.push({
+        ...lancamento,
         id: null,
         descricao: "Mensalidade : Presidência" + nomeSocio,
         centro_custo_lucro_id: centros_de_custo.ID_MENSALIDADE_PRESIDENCIA,
-        categoria_id: lancamento.categoria_id,
         valor: valorPresidencia.toString(),
       });
     }
-    return {
-      id: lancamento.id,
-      descricao: lancamento.descricao,
-      centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
-      valor: lancamento.valor,
-      categoria_id: lancamento.categoria_id,
-    };
+    return lancamento;
   });
   const naoDesmembrou = novosLancamentos.length == 0;
   naoDesmembrou && console.log("NÃO TEM MENSALIDADE");

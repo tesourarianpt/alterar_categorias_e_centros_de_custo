@@ -15,15 +15,15 @@ const adicionarHifen = (d) => {
   [
     "Fundo Beneficente",
     "Fundo Beneficiente",
+    "Mensalidade",
+    "Taxa de Alimentação",
+    "Taxa de Preparo",
+    "Taxa de Plantio",
+    "Casa da União",
     "Fundo Ambiental",
     "Fundo de Participação",
     "Fundo de Saúde",
     "Fundo Regional",
-    "Taxa de Preparo",
-    "Taxa de Alimentação",
-    "Mensalidade",
-    "Taxa de Plantio",
-    "Casa da União",
     "Novo Encanto",
     "Taxa de Boleto",
   ].forEach((rubrica) => {
@@ -34,30 +34,28 @@ const adicionarHifen = (d) => {
   return ret;
 };
 
-function ajustarNomesDasRubricas(lancamentos, nome) {
+function adicionarRubricas(lancamentos, nome) {
   const numSocios = countNumFundosParticipacao(lancamentos);
+  console.log("adicionarRubricas");
+  // mover os nomes das rubricas para um lugar comum (estão em ajustarNomesDasRubricas)
+  // dividir por sócio
+  // garantir que o sócio principal tem ( se não tiver, avisa e para )
+  // - taxa de boleto
+  // garantir que cada um tem
+  // - 4 fundos da dg ( se não tiver, avisa e para )
+  // - fundo regional ( se não tiver, avisa e para )
+  // - preparo ( se não tiver, avisa e cria )
+  // - alimentação ( se não tiver, avisa e cria )
+  // - 4 items da mensalidade ( se não tiver, avisa e cria )
+  // - plantio ( se não tiver, avisa e cria )
+  // - novo encanto ( se não tiver, avisa e cria )
+  // - casa da união ( se não tiver, avisa e cria )
 
   if (numSocios > 1) {
-    return lancamentos.map((l) => {
-      return {
-        ...l,
-        descricao:
-          temGranatum(l.descricao) || temBoleto(l.descricao)
-            ? `${l.descricao} - ${primeiroNome(nome)}`
-            : `${removerDepoisHifen(
-                adicionarHifen(l.descricao)
-              )} - ${primeiraMaiuscula(
-                nomeDepoisHifen(adicionarHifen(l.descricao))
-              )}`,
-      };
-    });
+    console.log({ numSocios });
   } else {
-    return lancamentos.map((l) => ({
-      ...l,
-      descricao: `${removerDepoisHifen(
-        adicionarHifen(l.descricao)
-      )} - ${primeiroNome(nome)}`,
-    }));
+    console.log("Um sócio");
   }
+  return lancamentos;
 }
-exports.ajustarNomesDasRubricas = ajustarNomesDasRubricas;
+exports.adicionarRubricas = adicionarRubricas;
