@@ -18,6 +18,6 @@ const mapeamento_de_categorias_antigas_para_suc = {
 function mapear_categoria(categoria_antiga_id) {
   const nova_categoria =
     mapeamento_de_categorias_antigas_para_suc[categoria_antiga_id];
-  return nova_categoria;
+  return nova_categoria ? nova_categoria : categoria_antiga_id;
 }
 exports.mapear_categoria = mapear_categoria;

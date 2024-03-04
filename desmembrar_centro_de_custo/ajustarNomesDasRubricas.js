@@ -1,6 +1,6 @@
 const { centros_de_custo } = require("./centros_de_custo");
 const { countNumFundosParticipacao } = require("./countNumFundosParticipacao");
-
+const { rubricas } = require("./rubricas");
 const temGranatum = (d) => d.includes("Granatum");
 const temBoleto = (d) => d.includes("boleto");
 const removerDepoisHifen = (d) => (temGranatum(d) ? d : d.split("-")[0].trim());
@@ -10,25 +10,18 @@ const primeiraMaiuscula = (s) =>
   s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
 const primeiroNome = (nome) => primeiraMaiuscula(nome.trim().split(" ")[0]);
 
-const adicionarHifen = (d) => {
-  let ret = d;
-  [
-    "Fundo Beneficente",
-    "Fundo Beneficiente",
-    "Fundo Ambiental",
-    "Fundo de Participação",
-    "Fundo de Saúde",
-    "Fundo Regional",
-    "Taxa de Preparo",
-    "Taxa de Alimentação",
-    "Mensalidade",
-    "Taxa de Plantio",
-    "Casa da União",
-    "Novo Encanto",
-    "Taxa de Boleto",
-  ].forEach((rubrica) => {
-    if (d.toLowerCase().includes(rubrica.toLowerCase()) && !d.includes("-")) {
-      ret = d.replace(new RegExp(rubrica, "gi"), `${rubrica} -`);
+const adicionarHifen = (descricao) => {
+  let ret = descricao.replace(
+    new RegExp("fundo beneficiente", "gi"),
+    "Fundo Beneficente"
+  );
+
+  rubricas.forEach((rubrica) => {
+    if (
+      ret.toLowerCase().includes(rubrica.toLowerCase()) &&
+      !ret.includes("-")
+    ) {
+      ret = ret.replace(new RegExp(rubrica, "gi"), `${rubrica} -`);
     }
   });
   return ret;

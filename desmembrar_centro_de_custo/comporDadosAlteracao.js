@@ -1,15 +1,18 @@
 const { centros_de_custo } = require("./centros_de_custo");
 
 function formatarDadosAlteracao(lancamento) {
-  return lancamento.id
-    ? {
-        id: lancamento.id,
-        centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
-        valor: lancamento.valor,
-        descricao: lancamento.descricao,
-        categoria_id: lancamento.categoria_id,
-      }
-    : lancamento;
+  if (lancamento.id) {
+    return {
+      id: lancamento.id,
+      centro_custo_lucro_id: lancamento.centro_custo_lucro_id,
+      valor: lancamento.valor,
+      descricao: lancamento.descricao,
+      categoria_id: lancamento.categoria_id,
+    };
+  } else {
+    delete lancamento.id;
+    return lancamento;
+  }
 }
 
 function comporDadosAlteracao(lancamentos, dataVencimento) {
@@ -20,7 +23,6 @@ function comporDadosAlteracao(lancamentos, dataVencimento) {
   if (!primeiroLancamentoDeDespesasFixas) {
     throw "Não encontrei um lançamento de despesas fixas.";
   }
-  console.log("......");
   const naoEOPrimeiro = (l) => l.id !== primeiroLancamentoDeDespesasFixas.id;
   const dadosAlteracao = {
     ...formatarDadosAlteracao(primeiroLancamentoDeDespesasFixas),

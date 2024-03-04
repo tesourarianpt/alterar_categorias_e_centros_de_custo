@@ -37,7 +37,7 @@ const adicionarHifen = (d) => {
 function adicionarRubricas(lancamentos, nome) {
   const numSocios = countNumFundosParticipacao(lancamentos);
   console.log("adicionarRubricas");
-  // mover os nomes das rubricas para um lugar comum (estão em ajustarNomesDasRubricas)
+
   // dividir por sócio
   // garantir que o sócio principal tem ( se não tiver, avisa e para )
   // - taxa de boleto
