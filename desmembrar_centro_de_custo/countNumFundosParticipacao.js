@@ -1,8 +1,8 @@
-const CATEGORIA_ID_FUNDO_PARTICIPACAO = 1998859;
+const { ids_categorias } = require("./ids_categorias");
 
 const countNumFundosParticipacao = (ls) => {
   const numFundosDeParticipacao = ls.filter(
-    (l) => l.categoria_id === CATEGORIA_ID_FUNDO_PARTICIPACAO
+    (l) => l.categoria_id === ids_categorias.fundo_de_participacao
   ).length;
   if (numFundosDeParticipacao === 0) {
     console.log("NÃO TEM FUNDO DE PARTICIPAÇÃO");

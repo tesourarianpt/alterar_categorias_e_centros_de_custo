@@ -1,0 +1,16 @@
+// Fundos
+const ids_centros_de_custo = {
+  ID_PRESIDENCIA: 141866,
+  ID_ALIMENTACAO: 141867,
+  ID_PREPARO: 141868,
+  ID_PLANTIO: 141869,
+  ID_NE_LOCAL: 141871,
+  ID_NE_GERAL: 141872,
+  ID_DESPESAS_FIXAS: 141873,
+  ID_ZELADOR: 141874,
+  ID_FUNDOS_DG: 141875,
+  ID_EMERGENCIA: 141876,
+  ID_CASA_DA_UNIAO: 141878,
+  ID_FUNDO_REGIONAL: 284263,
+};
+exports.ids_centros_de_custo = ids_centros_de_custo;

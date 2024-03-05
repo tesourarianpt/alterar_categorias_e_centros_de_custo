@@ -43,8 +43,8 @@ const {
   adicionarRubricas,
 } = require("./desmembrar_centro_de_custo/adicionarRubricas");
 const {
-  centros_de_custo: centro_de_custo_ids,
-} = require("./desmembrar_centro_de_custo/centros_de_custo");
+  ids_centros_de_custo,
+} = require("./desmembrar_centro_de_custo/ids_centros_de_custo");
 
 const createAskQuestion = () => {
   const rl = readline.createInterface({
@@ -54,27 +54,30 @@ const createAskQuestion = () => {
   return (question) => new Promise((resolve) => rl.question(question, resolve));
 };
 
-async function main(accessToken) {
-  const centrosDeCusto = await ler_centros_de_custo_agrupados(accessToken);
-  const categorias = await ler_categorias_agrupadas(accessToken);
-  const askQuestion = createAskQuestion();
-
-  const socios = await listar_clientes(accessToken, true, {
-    term: "Benedito",
-  });
-  console.log(`Lidos: ${socios.length} socios`);
+const lerLancamentosDG = async (accessToken) => {
   const lancamentos = await lerTodosLancamentos(accessToken, {
     conta_id: 75063,
-    centro_custo_lucro_id: centro_de_custo_ids.ID_FUNDOS_DG,
+    centro_custo_lucro_id: ids_centros_de_custo.ID_FUNDOS_DG,
     data_inicio: "2024-04-01",
     data_fim: "2024-04-30",
     tipo: "R|LR|RA",
   });
   console.log(`Lidos: ${lancamentos.length} lancamentos`);
+  return lancamentos;
+};
+
+async function main(accessToken) {
+  const centrosDeCusto = await ler_centros_de_custo_agrupados(accessToken);
+  const categorias = await ler_categorias_agrupadas(accessToken);
+  const askQuestion = createAskQuestion();
+
+  const socios = await listar_clientes(accessToken, true);
+  console.log(`Lidos: ${socios.length} socios`);
+  const lancamentosDG = await lerLancamentosDG(accessToken);
 
   const sociosELancamentosCompostos = unirSociosELancamentosCompostos(
     socios,
-    lancamentos
+    lancamentosDG
   );
 
   let i = 0;
@@ -95,26 +98,35 @@ async function main(accessToken) {
         ...lancamento.itens_adicionais,
       ];
 
-      // verificar se já não está desmembrado. Se estiver, pula para o próximo.
-      let lancamentosDesmembrados = ajustarNomesDasRubricas(
-        lancamentosNaoAninhados,
-        socioaELancamentoComposto.nome
-      );
       mostrarLancamentos(
         centrosDeCusto,
         categorias,
         lancamentosNaoAninhados,
-        ` atual ${socioaELancamentoComposto.nome} ${socioaELancamentoComposto.id}`
+        "lançamento lidos..."
+      );
+
+      // verificar se já não está desmembrado. Se estiver, pula para o próximo.
+      let lancamentosDesmembrados = ajustarNomesDasRubricas(
+        lancamentosNaoAninhados,
+        socioaELancamentoComposto.nome_fantasia
       );
       lancamentosDesmembrados = lancamentosDesmembrados.map((l) => {
         l.categoria_id = mapear_categoria(l.categoria_id);
         return l;
       });
+
       lancamentosDesmembrados = desmembrarNovoEncanto(lancamentosDesmembrados);
       lancamentosDesmembrados = mudarCentroDeCustoDoFundoRegional(
         lancamentosDesmembrados
       );
       lancamentosDesmembrados = desmembrarMensalidade(lancamentosDesmembrados);
+
+      mostrarLancamentos(
+        centrosDeCusto,
+        categorias,
+        lancamentosDesmembrados,
+        "antes de adicionar"
+      );
       lancamentosDesmembrados = adicionarRubricas(
         lancamentosDesmembrados,
         socioaELancamentoComposto.nome,
@@ -125,15 +137,13 @@ async function main(accessToken) {
         centrosDeCusto,
         categorias,
         lancamentosDesmembrados,
-        "desmembrados"
+        "prontos para alterar"
       );
       await askQuestion("[desmembrar...]");
       const { id, dados } = comporDadosAlteracao(
         lancamentosDesmembrados,
         lancamento.data_vencimento
       );
-      console.log({ dados });
-      console.log({ itens_adicionais: dados.itens_adicionais });
       // alterar_lancamento(accessToken, id, dados);
       await askQuestion("[próximo sócio...]");
     } else {

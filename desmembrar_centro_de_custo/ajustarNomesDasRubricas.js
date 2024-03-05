@@ -1,14 +1,31 @@
-const { centros_de_custo } = require("./centros_de_custo");
 const { countNumFundosParticipacao } = require("./countNumFundosParticipacao");
-const { rubricas } = require("./rubricas");
 const temGranatum = (d) => d.includes("Granatum");
 const temBoleto = (d) => d.includes("boleto");
 const removerDepoisHifen = (d) => (temGranatum(d) ? d : d.split("-")[0].trim());
 const nomeDepoisHifen = (d) => d.split("-")[1].trim();
 
-const primeiraMaiuscula = (s) =>
-  s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-const primeiroNome = (nome) => primeiraMaiuscula(nome.trim().split(" ")[0]);
+const primeirasMaiusculas = (s) =>
+  s
+    .split(" ")
+    .map((palavra) => {
+      return palavra.charAt(0).toUpperCase() + palavra.slice(1).toLowerCase();
+    })
+    .join(" ");
+
+const nomesAntigosRubricas = [
+  "Fundo Beneficente",
+  "Fundo Ambiental",
+  "Fundo de Participação",
+  "Fundo de Saúde",
+  "Fundo Regional",
+  "Taxa de Preparo",
+  "Taxa de Alimentação",
+  "Mensalidade",
+  "Taxa de Plantio",
+  "Casa da União",
+  "Novo Encanto",
+  "Taxa de Boleto",
+];
 
 const adicionarHifen = (descricao) => {
   let ret = descricao.replace(
@@ -16,12 +33,9 @@ const adicionarHifen = (descricao) => {
     "Fundo Beneficente"
   );
 
-  rubricas.forEach((rubrica) => {
-    if (
-      ret.toLowerCase().includes(rubrica.toLowerCase()) &&
-      !ret.includes("-")
-    ) {
-      ret = ret.replace(new RegExp(rubrica, "gi"), `${rubrica} -`);
+  nomesAntigosRubricas.forEach((nome) => {
+    if (ret.toLowerCase().includes(nome.toLowerCase()) && !ret.includes("-")) {
+      ret = ret.replace(new RegExp(nome, "gi"), `${nome} -`);
     }
   });
   return ret;
@@ -29,28 +43,45 @@ const adicionarHifen = (descricao) => {
 
 function ajustarNomesDasRubricas(lancamentos, nome) {
   const numSocios = countNumFundosParticipacao(lancamentos);
-
+  console.log("ajustarNomesDasRubricas", nome);
   if (numSocios > 1) {
     return lancamentos.map((l) => {
+      let novoNome = "";
+      let numHifens = (l.descricao.match(/-/g) || []).length;
+
+      if (
+        (temGranatum(l.descricao) && numHifens === 1) ||
+        (temBoleto(l.descricao) && numHifens === 0)
+      ) {
+        novoNome = `${l.descricao} - ${nome}`;
+      } else {
+        novoNome = l.descricao;
+      }
+
+      if (!temBoleto(l.descricao) && !temGranatum(l.descricao)) {
+        const nomeRubrica = removerDepoisHifen(adicionarHifen(l.descricao));
+        const nomeDepoisDoHifen = nomeDepoisHifen(adicionarHifen(l.descricao));
+        const nomePessoa = primeirasMaiusculas(nomeDepoisDoHifen);
+        novoNome = `${nomeRubrica} - ${nomePessoa}`;
+      }
+
+      console.log({ d: l.descricao, novoNome });
+
       return {
         ...l,
-        descricao:
-          temGranatum(l.descricao) || temBoleto(l.descricao)
-            ? `${l.descricao} - ${primeiroNome(nome)}`
-            : `${removerDepoisHifen(
-                adicionarHifen(l.descricao)
-              )} - ${primeiraMaiuscula(
-                nomeDepoisHifen(adicionarHifen(l.descricao))
-              )}`,
+        descricao: novoNome,
       };
     });
   } else {
-    return lancamentos.map((l) => ({
-      ...l,
-      descricao: `${removerDepoisHifen(
+    return lancamentos.map((l) => {
+      const novoNome = `${removerDepoisHifen(
         adicionarHifen(l.descricao)
-      )} - ${primeiroNome(nome)}`,
-    }));
+      )} - ${nome}`;
+      return {
+        ...l,
+        descricao: novoNome,
+      };
+    });
   }
 }
 exports.ajustarNomesDasRubricas = ajustarNomesDasRubricas;

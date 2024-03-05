@@ -1,10 +1,10 @@
-const { centros_de_custo } = require("./centros_de_custo");
+const { ids_centros_de_custo } = require("./ids_centros_de_custo");
 
 const temCentroDeCusto = (id) => (l) => l.centro_custo_lucro_id == id;
 
 function desmembrarNovoEncanto(lancamentos) {
   const neLocal = lancamentos.filter(
-    temCentroDeCusto(centros_de_custo.ID_NE_LOCAL)
+    temCentroDeCusto(ids_centros_de_custo.ID_NE_LOCAL)
   );
   if (neLocal.length > 0) {
     throw Error(
@@ -16,7 +16,7 @@ function desmembrarNovoEncanto(lancamentos) {
 
   const novosLancamentos = [];
   lancamentos = lancamentos.map((lancamento) => {
-    if (temCentroDeCusto(centros_de_custo.ID_NE_GERAL)(lancamento)) {
+    if (temCentroDeCusto(ids_centros_de_custo.ID_NE_GERAL)(lancamento)) {
       const descricao = lancamento.descricao;
       const parts = descricao.split("-");
       let nomeSocio = parts.length > 1 ? ` -${parts[1]}` : "";
@@ -30,7 +30,7 @@ function desmembrarNovoEncanto(lancamentos) {
         id: null,
         descricao: "Novo Encanto Local" + nomeSocio,
         categoria_id: lancamento.categoria_id,
-        centro_custo_lucro_id: centros_de_custo.ID_NE_LOCAL,
+        centro_custo_lucro_id: ids_centros_de_custo.ID_NE_LOCAL,
         valor: valorNELocal.toString(),
       };
       novosLancamentos.push(novoLancamento);

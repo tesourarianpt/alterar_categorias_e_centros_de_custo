@@ -1,4 +1,4 @@
-const { centros_de_custo } = require("./centros_de_custo");
+const { ids_centros_de_custo } = require("./ids_centros_de_custo");
 
 function formatarDadosAlteracao(lancamento) {
   if (lancamento.id) {
@@ -17,8 +17,7 @@ function formatarDadosAlteracao(lancamento) {
 
 function comporDadosAlteracao(lancamentos, dataVencimento) {
   const primeiroLancamentoDeDespesasFixas = lancamentos.find(
-    (l) =>
-      l.centro_custo_lucro_id === centros_de_custo.ID_MENSALIDADE_DESPESAS_FIXAS
+    (l) => l.centro_custo_lucro_id === ids_centros_de_custo.ID_DESPESAS_FIXAS
   );
   if (!primeiroLancamentoDeDespesasFixas) {
     throw "Não encontrei um lançamento de despesas fixas.";

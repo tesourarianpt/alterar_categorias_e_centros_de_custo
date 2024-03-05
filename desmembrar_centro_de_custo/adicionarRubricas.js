@@ -1,10 +1,11 @@
-const { centros_de_custo } = require("./centros_de_custo");
+const { ids_centros_de_custo } = require("./ids_centros_de_custo");
 const { ids_categorias } = require("./ids_categorias");
+const { rubricas } = require("./rubricas");
 const { countNumFundosParticipacao } = require("./countNumFundosParticipacao");
 const { mostrarLancamentos } = require("../lib/mostrarLancamentos");
 
 const temLancamentoComCategoria = (lancamentos, id) => {
-  return !!lancamentos.find((l) => (l.categoria_id = id));
+  return !!lancamentos.find((l) => l.categoria_id === id);
 };
 
 const temLancamentoComCentroDeCusto = (lancamentos, id) => {
@@ -19,20 +20,37 @@ function adicionarRubricas(
 ) {
   const numSocios = countNumFundosParticipacao(lancamentos);
   const grupos = {};
+  const lancamentoBase = { ...lancamentos[0] };
 
-  console.log(" ADICIONAR RUBRICAS ---- ", nomePrincipal);
   lancamentos.forEach((lancamento) => {
     const descricao = lancamento.descricao;
-    const nome = descricao.split("-").pop();
+    const nome = descricao.split("-").pop().trim();
     grupos.hasOwnProperty(nome) || (grupos[nome] = []);
     grupos[nome].push(lancamento);
   });
 
-  Object.keys(grupos).forEach((nome) => {
-    const lancamentosDaPessoa = grupos[nome];
-    // garantir que cada um tem
+  const nomesDasPessoas = Object.keys(grupos);
 
-    // - 4 fundos da dg ( se não tiver, avisa )
+  console.log(`Adicionar rubricas para ${nomePrincipal}`);
+  console.log(
+    `${nomesDasPessoas.length} Sócios encontrados: ${Object.keys(grupos)}`
+  );
+
+  const novosLancamentos = [];
+
+  function criarRubricaZerada(rubrica, nomeDaPessoa) {
+    const novoLancamento = { ...lancamentoBase };
+    novoLancamento.centro_custo_lucro_id = rubrica.centro_custo_lucro_id;
+    novoLancamento.descricao = `${rubrica.nome} - ${nomeDaPessoa}`;
+    novoLancamento.categoria_id = rubrica.categoria_id;
+    novoLancamento.valor = 0;
+    return novoLancamento;
+  }
+
+  nomesDasPessoas.forEach((nome) => {
+    const lancamentosDaPessoa = grupos[nome];
+    console.log(`Rubricas de ${nome}...`);
+
     if (
       !temLancamentoComCategoria(
         lancamentosDaPessoa,
@@ -65,8 +83,6 @@ function adicionarRubricas(
     ) {
       console.log("ERRO: NÃO TEM FUNDO DE SAÚDE");
     }
-
-    // - fundo regional ( se não tiver, avisa )
     if (
       !temLancamentoComCategoria(
         lancamentosDaPessoa,
@@ -75,18 +91,6 @@ function adicionarRubricas(
     ) {
       console.log("ERRO: NÃO TEM FUNDO REGIONAL");
     }
-
-    // - preparo ( se não tiver, avisa e cria )
-    if (
-      !temLancamentoComCategoria(
-        lancamentosDaPessoa,
-        ids_categorias.taxa_de_preparo
-      )
-    ) {
-      console.log("criar taxa de preparo");
-    }
-
-    // - alimentação ( se não tiver, avisa e cria )
     if (
       !temLancamentoComCategoria(
         lancamentosDaPessoa,
@@ -94,64 +98,108 @@ function adicionarRubricas(
       )
     ) {
       console.log("criar taxa de alimentação");
+      novosLancamentos.push(
+        criarRubricaZerada(rubricas.taxa_de_alimentacao, nome)
+      );
     }
-
-    // - 4 items da mensalidade ( se não tiver, avisa e cria )
-
     const itens_mensalidade = lancamentosDaPessoa.filter(
       (l) => l.categoria_id === ids_categorias.mensalidade
     );
     if (!itens_mensalidade.length === 4) {
       console.log("NÃO TEM AS 4 RUBRICAS DA MENSALIDADE");
+      novosLancamentos.push(criarRubricaZerada(rubricas.casa_da_uniao, nome));
     }
-
-    // mensalidade - despesas fixas
     if (
       !temLancamentoComCentroDeCusto(
         lancamentosDaPessoa,
-        centros_de_custo.ID_MENSALIDADE_DESPESAS_FIXAS
+        ids_centros_de_custo.ID_DESPESAS_FIXAS
       )
     ) {
       console.log("criar mensalidade - despesas fixas");
+      novosLancamentos.push(criarRubricaZerada(rubricas.despesas_fixas, nome));
     }
-
-    // mensalidade - zelador
     if (
       !temLancamentoComCentroDeCusto(
         lancamentosDaPessoa,
-        centros_de_custo.ID_MENSALIDADE_ZELADOR
+        ids_centros_de_custo.ID_ZELADOR
       )
     ) {
       console.log("criar mensalidade - zelador");
+      novosLancamentos.push(criarRubricaZerada(rubricas.zelador, nome));
     }
-
-    // mensalidade - presidencia
     if (
       !temLancamentoComCentroDeCusto(
         lancamentosDaPessoa,
-        centros_de_custo.ID_MENSALIDADE_PRESIDENCIA
+        ids_centros_de_custo.ID_PRESIDENCIA
       )
     ) {
       console.log("criar mensalidade - presidencia");
+      novosLancamentos.push(criarRubricaZerada(rubricas.presidencia, nome));
     }
-
-    // mensalidade - emergência
     if (
       !temLancamentoComCentroDeCusto(
         lancamentosDaPessoa,
-        centros_de_custo.ID_MENSALIDADE_EMERGENCIA
+        ids_centros_de_custo.ID_EMERGENCIA
       )
     ) {
       console.log("criar mensalidade - emergência");
+      novosLancamentos.push(criarRubricaZerada(rubricas.emergencia, nome));
     }
-
-    // - plantio ( se não tiver, avisa e cria )
-
-    // - novo encanto ( se não tiver, avisa e cria )
-
-    // - casa da união ( se não tiver, avisa e cria )
-
-    mostrarLancamentos(centrosDeCusto, categorias, grupos[nome], nome);
+    if (
+      !temLancamentoComCentroDeCusto(
+        lancamentosDaPessoa,
+        ids_centros_de_custo.ID_PLANTIO
+      )
+    ) {
+      console.log("criar taxa de plantio");
+      novosLancamentos.push(criarRubricaZerada(rubricas.taxa_de_plantio, nome));
+    }
+    if (
+      !temLancamentoComCentroDeCusto(
+        lancamentosDaPessoa,
+        ids_centros_de_custo.ID_PREPARO
+      )
+    ) {
+      console.log("criar taxa de preparo");
+      novosLancamentos.push(criarRubricaZerada(rubricas.taxa_de_preparo, nome));
+    }
+    if (
+      !temLancamentoComCentroDeCusto(
+        lancamentosDaPessoa,
+        ids_centros_de_custo.ID_NE_LOCAL
+      )
+    ) {
+      console.log("criar ne local");
+      novosLancamentos.push(
+        criarRubricaZerada(rubricas.novo_encanto_local, nome)
+      );
+    }
+    if (
+      !temLancamentoComCentroDeCusto(
+        lancamentosDaPessoa,
+        ids_centros_de_custo.ID_NE_GERAL
+      )
+    ) {
+      console.log("criar ne geral");
+      novosLancamentos.push(
+        criarRubricaZerada(rubricas.novo_encanto_geral, nome)
+      );
+    }
+    if (
+      !temLancamentoComCentroDeCusto(
+        lancamentosDaPessoa,
+        ids_centros_de_custo.ID_CASA_DA_UNIAO
+      )
+    ) {
+      console.log("criar casa da união");
+      novosLancamentos.push(criarRubricaZerada(rubricas.casa_da_uniao, nome));
+    }
+    mostrarLancamentos(
+      centrosDeCusto,
+      categorias,
+      [...novosLancamentos, ...grupos[nome]],
+      `Rubricas de ${nome}`
+    );
   });
 
   if (numSocios > 1) {
@@ -159,6 +207,6 @@ function adicionarRubricas(
   } else {
     console.log("Um sócio");
   }
-  return lancamentos;
+  return [...lancamentos, ...novosLancamentos];
 }
 exports.adicionarRubricas = adicionarRubricas;

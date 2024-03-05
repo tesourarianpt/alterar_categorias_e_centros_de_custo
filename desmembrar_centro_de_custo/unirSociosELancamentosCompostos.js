@@ -4,6 +4,7 @@ function unirSociosELancamentosCompostos(socios, lancamentos) {
     sociosELancamentosCompostos[s.id] = {
       id: s.id,
       nome: s.nome,
+      nome_fantasia: s.nome_fantasia,
       lancamento_composto_id: null,
     };
   });
