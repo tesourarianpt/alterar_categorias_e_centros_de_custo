@@ -15,9 +15,9 @@ const { ler_categorias_agrupadas } = require("./lib/ler_categorias_agrupadas");
 const {
   mapear_categoria,
 } = require("./alterar_categorias_e_centros_de_custo/mapear_categoria");
-// const {
-//   recupera_id_composto,
-// } = require("./alterar_categorias_e_centros_de_custo/baseIdCompostoFev24");
+ const {
+   recupera_id_composto,
+ } = require("./alterar_categorias_e_centros_de_custo/baseIdCompostoAbr24");
 const {
   alterar_lancamento,
 } = require("./alterar_categorias_e_centros_de_custo/alterar_lancamento");
@@ -37,10 +37,10 @@ function ordenarPorId(lancamentos) {
 async function main(accessToken) {
   const centrosDeCusto = await ler_centros_de_custo_agrupados(accessToken);
   const categorias = await ler_categorias_agrupadas(accessToken);
-  for (let chave = 1; chave <= 2; chave++) {
+  for (let chave = 3; chave <= 87; chave++) {
     const filtro = {
       limit: 50,
-      lancamento_composto_id: 3343459,
+      lancamento_composto_id: parseInt(recupera_id_composto(chave)), // 3343459,
       data_inicio: "2024-04-1",
       data_fim: "2024-04-30",
       tipo: "R|LR|RA",
@@ -85,7 +85,7 @@ async function main(accessToken) {
       console.log([itemPrincipal, ...itensAdicionais]);
       console.log({ dadosAlteracao });
 
-      // alterar_lancamento(accessToken, primeiroLancamento.id, dadosAlteracao);
+      alterar_lancamento(accessToken, primeiroLancamento.id, dadosAlteracao);
     });
   }
 }
