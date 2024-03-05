@@ -1,6 +1,9 @@
 const {
-  agruparPorLancamentoComposto,
-} = require("./alterar_categorias_e_centros_de_custo/agruparPorLancamentoComposto");
+  mapear_categoria,
+} = require("./desmembrar_centro_de_custo/mapear_categoria");
+// const {
+//   agruparPorLancamentoComposto,
+// } = require("./desmembrar_centro_de_custo/agruparPorLancamentoComposto");
 const {
   pedirAccessTokenSeNaoDefinido,
 } = require("./pedirAccessTokenSeNaoDefinido");
@@ -91,24 +94,33 @@ async function main(accessToken) {
         lancamento,
         ...lancamento.itens_adicionais,
       ];
-      mostrarLancamentos(
-        centrosDeCusto,
-        categorias,
-        lancamentosNaoAninhados,
-        ` atual ${socioaELancamentoComposto.nome} ${socioaELancamentoComposto.id}`
-      );
 
       // verificar se já não está desmembrado. Se estiver, pula para o próximo.
       let lancamentosDesmembrados = ajustarNomesDasRubricas(
         lancamentosNaoAninhados,
         socioaELancamentoComposto.nome
       );
+      mostrarLancamentos(
+        centrosDeCusto,
+        categorias,
+        lancamentosNaoAninhados,
+        ` atual ${socioaELancamentoComposto.nome} ${socioaELancamentoComposto.id}`
+      );
+      lancamentosDesmembrados = lancamentosDesmembrados.map((l) => {
+        l.categoria_id = mapear_categoria(l.categoria_id);
+        return l;
+      });
       lancamentosDesmembrados = desmembrarNovoEncanto(lancamentosDesmembrados);
       lancamentosDesmembrados = mudarCentroDeCustoDoFundoRegional(
         lancamentosDesmembrados
       );
       lancamentosDesmembrados = desmembrarMensalidade(lancamentosDesmembrados);
-      lancamentosDesmembrados = adicionarRubricas(lancamentosDesmembrados);
+      lancamentosDesmembrados = adicionarRubricas(
+        lancamentosDesmembrados,
+        socioaELancamentoComposto.nome,
+        centrosDeCusto,
+        categorias
+      );
       mostrarLancamentos(
         centrosDeCusto,
         categorias,
@@ -122,7 +134,7 @@ async function main(accessToken) {
       );
       console.log({ dados });
       console.log({ itens_adicionais: dados.itens_adicionais });
-      alterar_lancamento(accessToken, id, dados);
+      // alterar_lancamento(accessToken, id, dados);
       await askQuestion("[próximo sócio...]");
     } else {
       console.log(`${socioaELancamentoComposto.nome} - NÃO TEM MENSALIDADE`);
