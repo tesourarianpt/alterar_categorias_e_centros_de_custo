@@ -9,7 +9,7 @@ const {
 } = require("./pedirAccessTokenSeNaoDefinido");
 const {
   alterar_lancamento,
-} = require("./alterar_categorias_e_centros_de_custo/alterar_lancamento");
+} = require("./desmembrar_centro_de_custo/alterar_lancamento");
 const {
   desmembrarMensalidade,
 } = require("./desmembrar_centro_de_custo/desmembrarMensalidade");
@@ -58,7 +58,7 @@ const lerLancamentosDG = async (accessToken) => {
   const lancamentos = await lerTodosLancamentos(accessToken, {
     conta_id: 75063,
     centro_custo_lucro_id: ids_centros_de_custo.ID_FUNDOS_DG,
-    data_inicio: "2024-04-01",
+    data_inicio: "2024-04-20",
     data_fim: "2024-04-30",
     tipo: "R|LR|RA",
   });
@@ -71,7 +71,7 @@ async function main(accessToken) {
   const categorias = await ler_categorias_agrupadas(accessToken);
   const askQuestion = createAskQuestion();
 
-  const socios = await listar_clientes(accessToken, true);
+  const socios = await listar_clientes(accessToken, true, { term: "Adriana" });
   console.log(`Lidos: ${socios.length} socios`);
   const lancamentosDG = await lerLancamentosDG(accessToken);
 
@@ -139,12 +139,13 @@ async function main(accessToken) {
         lancamentosDesmembrados,
         "prontos para alterar"
       );
-      await askQuestion("[desmembrar...]");
+
       const { id, dados } = comporDadosAlteracao(
         lancamentosDesmembrados,
         lancamento.data_vencimento
       );
-      // alterar_lancamento(accessToken, id, dados);
+      await askQuestion("[desmembrar...]");
+      alterar_lancamento(accessToken, id, dados);
       await askQuestion("[próximo sócio...]");
     } else {
       console.log(`${socioaELancamentoComposto.nome} - NÃO TEM MENSALIDADE`);

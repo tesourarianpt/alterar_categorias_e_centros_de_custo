@@ -19,8 +19,16 @@ function adicionarRubricas(
   categorias
 ) {
   const numSocios = countNumFundosParticipacao(lancamentos);
+
   const grupos = {};
-  const lancamentoBase = { ...lancamentos[0] };
+  const lancamentoFundoDeParticipacao = lancamentos.find(
+    (l) =>
+      String(l.categoria_id) === String(ids_categorias.fundo_de_participacao)
+  );
+  if (lancamentoFundoDeParticipacao.length < 1)
+    throw "Fundo de participação não encontrado";
+  const lancamentoBase = { ...lancamentoFundoDeParticipacao };
+  delete lancamentoBase.id;
 
   lancamentos.forEach((lancamento) => {
     const descricao = lancamento.descricao;

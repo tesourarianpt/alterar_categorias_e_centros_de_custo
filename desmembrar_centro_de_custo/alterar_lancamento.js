@@ -23,16 +23,13 @@ function jsonToFormUrlEncoded(json) {
   };
 
   flattenObject(json);
-
+  console.log({ params });
   return params.toString();
 }
 
 function alterar_lancamento(accessToken, id, params) {
-  console.log("alterar_lancamento", { id, params });
-
   const url = `${apiUrl}/${id}`;
   const serializedParams = jsonToFormUrlEncoded(params);
-  // console.log(decodeURIComponent(serializedParams));
 
   return axios
     .put(url, serializedParams, {
