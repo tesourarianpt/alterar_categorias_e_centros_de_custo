@@ -74,9 +74,21 @@ function ajustarNomesDasRubricas(lancamentos, nome) {
     });
   } else {
     return lancamentos.map((l) => {
-      const novoNome = `${removerDepoisHifen(
-        adicionarHifen(l.descricao)
-      )} - ${nome}`;
+      let numHifens = (l.descricao.match(/-/g) || []).length;
+      let novoNome = l.descricao;
+      if (
+        (temGranatum(l.descricao) && numHifens === 1) ||
+        (temBoleto(l.descricao) && numHifens === 0)
+      ) {
+        novoNome = `${l.descricao} - ${nome}`;
+      }
+
+      if (!temBoleto(l.descricao) && !temGranatum(l.descricao)) {
+        novoNome = `${removerDepoisHifen(
+          adicionarHifen(l.descricao)
+        )} - ${nome}`;
+      }
+
       return {
         ...l,
         descricao: novoNome,

@@ -6,6 +6,7 @@ function formatarDadosAlteracao(lancamento, pessoa_id) {
   delete dadoAlteracao.periodicidade;
   delete dadoAlteracao.itens_adicionais;
   delete dadoAlteracao.data_pagamento;
+  delete dadoAlteracao.total_repeticoes;
   if (dadoAlteracao.pessoa_id != pessoa_id) {
     delete dadoAlteracao.pessoa_id;
   }

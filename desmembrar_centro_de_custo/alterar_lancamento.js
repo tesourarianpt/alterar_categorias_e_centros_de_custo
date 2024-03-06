@@ -23,7 +23,6 @@ function jsonToFormUrlEncoded(json) {
   };
 
   flattenObject(json);
-  console.log({ params });
   return params.toString();
 }
 

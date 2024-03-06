@@ -58,7 +58,7 @@ const lerLancamentosDG = async (accessToken) => {
   const lancamentos = await lerTodosLancamentos(accessToken, {
     conta_id: 75063,
     centro_custo_lucro_id: ids_centros_de_custo.ID_FUNDOS_DG,
-    data_inicio: "2024-04-20",
+    data_inicio: "2024-04-01",
     data_fim: "2024-04-30",
     tipo: "R|LR|RA",
   });
@@ -71,7 +71,7 @@ async function main(accessToken) {
   const categorias = await ler_categorias_agrupadas(accessToken);
   const askQuestion = createAskQuestion();
 
-  const socios = await listar_clientes(accessToken, true, { term: "Adriana" });
+  const socios = await listar_clientes(accessToken, true);
   console.log(`Lidos: ${socios.length} socios`);
   const lancamentosDG = await lerLancamentosDG(accessToken);
 
